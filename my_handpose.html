@@ -1,0 +1,134 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Handpose with Webcam</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="stylesheet" href="handpose.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DotGothic16");
+    </style>
+  </head>
+  <body>
+    <h1>Rock Paper Scissors Game</h1>
+    <div class="content">
+      <div class="pc">
+        <div id="pc_hand">？</div>
+        <div>pc hand</div>
+      </div>
+      <div>
+        <a href="mygame.html">→TOPに戻る</a>
+      </div>
+      <div class="my">
+        <div id="your_hand">？</div>
+        <div>my hand</div>
+      </div>
+    </div>
+    <div id="kekka">＜victory or defeat＞</div>
+
+    <script>
+      let handpose;
+      let video;
+      let predictions = [];
+      let pose_btn;
+      let pose;
+      let hand_name = ["グー", "チョキ", "パー"];
+
+      function setup() {
+        createCanvas(640, 480);
+        video = createCapture(VIDEO);
+        video.size(width, height);
+
+        handpose = ml5.handpose(video, modelReady);
+
+        handpose.on("predict", (results) => {
+          predictions = results;
+        });
+
+        video.hide();
+
+        pose_btn = createButton("決定");
+        pose_btn.mousePressed(drawKeypoints);
+      }
+
+      function modelReady() {
+        console.log("Model ready!");
+      }
+
+      function draw() {
+        image(video, 0, 0, width, height);
+
+        //drawKeypoints();
+      }
+
+      function drawKeypoints() {
+        for (let i = 0; i < predictions.length; i += 1) {
+          const prediction = predictions[i];
+          for (let j = 0; j < prediction.landmarks.length; j += 1) {
+            const keypoint = prediction.landmarks[j];
+
+            const choki_dis =
+              (prediction.landmarks[12][0] - prediction.landmarks[8][0]) *
+              (prediction.landmarks[12][0] - prediction.landmarks[8][0]);
+            //console.log(choki_dis);
+
+            const pa_dis =
+              (prediction.landmarks[20][0] - prediction.landmarks[4][0]) *
+              (prediction.landmarks[20][0] - prediction.landmarks[4][0]);
+            //console.log(pa_dis);
+
+            //大きく手を広げる
+            if (choki_dis < 1500) {
+              //console.log("グー");
+              pose = "グー";
+            } else {
+              if (pa_dis > 20000) {
+                //console.log("パー");
+                pose = "パー";
+              } else {
+                //console.log("チョキ");
+                pose = "チョキ";
+              }
+            }
+            janken(pose);
+          }
+        }
+      }
+
+      function janken(pose) {
+        let rnd = Math.floor(Math.random() * 3);
+        //console.log(pose);
+        //console.log(pc_hand[rnd]);
+
+        if (pose == "グー") {
+          if (rnd == 0) {
+            document.querySelector("#kekka").innerHTML = "＜draw＞";
+          } else if (rnd == 1) {
+            document.querySelector("#kekka").innerHTML = "＜win＞";
+          } else {
+            document.querySelector("#kekka").innerHTML = "＜lose＞";
+          }
+        } else if (pose == "チョキ") {
+          if (rnd == 0) {
+            document.querySelector("#kekka").innerHTML = "＜lose＞";
+          } else if (rnd == 1) {
+            document.querySelector("#kekka").innerHTML = "＜draw＞";
+          } else {
+            document.querySelector("#kekka").innerHTML = "＜win＞";
+          }
+        } else {
+          if (rnd == 0) {
+            document.querySelector("#kekka").innerHTML = "＜win＞";
+          } else if (rnd == 1) {
+            document.querySelector("#kekka").innerHTML = "＜lose＞";
+          } else {
+            document.querySelector("#kekka").innerHTML = "＜draw＞";
+          }
+        }
+
+        document.querySelector("#pc_hand").innerHTML = hand_name[rnd];
+        document.querySelector("#your_hand").innerHTML = pose;
+      }
+    </script>
+  </body>
+</html>

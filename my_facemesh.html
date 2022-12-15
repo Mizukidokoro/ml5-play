@@ -1,0 +1,197 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Facemesh with Webcam</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="stylesheet" href="facemesh.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DotGothic16");
+    </style>
+  </head>
+  <body>
+    <div class="content">
+      <div>
+        <img src="img/kai.png" id="pic1" width="90" height="80" />
+        <img src="img/ika.png" id="pic3" width="90" height="80" />
+        <br />
+        <img src="img/kujira.png" id="pic5" width="90" height="80" />
+        <img src="img/hugu.png" id="pic7" width="90" height="80" />
+        <img src="img/kani.png" id="pic9" width="90" height="80" />
+      </div>
+      <div class="over">
+        <h1>Game to Catch Fish</h1>
+        <div id="owari"></div>
+        <a href="mygame.html">→TOPに戻る</a>
+      </div>
+      <div>
+        <img src="img/hirame.png" id="pic2" width="90" height="80" />
+        <img src="img/tako.png" id="pic4" width="90" height="80" />
+        <br />
+        <img src="img/kame.png" id="pic6" width="90" height="80" />
+        <img src="img/syati.png" id="pic8" width="90" height="80" />
+        <img src="img/kurage1.png" id="pic10" width="90" height="80" />
+      </div>
+    </div>
+    <script>
+      let facemesh;
+      let video;
+      let predictions = [];
+      let cat;
+      let fish;
+      let mouth;
+      let targetX = 0;
+      let targetY = 0;
+      let gamepoint = 0;
+
+      document.getElementById("pic1").style.visibility = "hidden";
+      document.getElementById("pic2").style.visibility = "hidden";
+      document.getElementById("pic3").style.visibility = "hidden";
+      document.getElementById("pic4").style.visibility = "hidden";
+      document.getElementById("pic5").style.visibility = "hidden";
+      document.getElementById("pic6").style.visibility = "hidden";
+      document.getElementById("pic7").style.visibility = "hidden";
+      document.getElementById("pic8").style.visibility = "hidden";
+      document.getElementById("pic9").style.visibility = "hidden";
+      document.getElementById("pic10").style.visibility = "hidden";
+
+      function setup() {
+        createCanvas(640, 480);
+        video = createCapture(VIDEO);
+        video.size(width, height);
+
+        facemesh = ml5.facemesh(video, modelReady);
+
+        //(results) => と function(results) は同じ
+        facemesh.on("predict", (results) => {
+          predictions = results;
+        });
+
+        video.hide();
+      }
+
+      function modelReady() {
+        console.log("Model ready!");
+      }
+
+      function preload() {
+        cat = loadImage("img/cat.png");
+        fish = loadImage("img/sakana.png");
+        mouth = loadImage("img/mouth.png");
+      }
+
+      function draw() {
+        image(video, 0, 0, width, height);
+
+        drawKeypoints();
+      }
+
+      function drawKeypoints() {
+        for (let i = 0; i < predictions.length; i += 1) {
+          const keypoints = predictions[i].scaledMesh;
+
+          for (let j = 0; j < keypoints.length; j += 1) {
+            const [x, y] = keypoints[j];
+            fill(0, 255, 0);
+            //ellipse(x, y, 5, 5);
+          }
+
+          /*顔のサイズによって飾りの大きさが変わる*/
+          const [m, n] = keypoints[21];
+          const distance = keypoints[454][0] - keypoints[234][0];
+          let image_x = 130;
+          let image_y = 70;
+          let image_xy = 270;
+          let sa = 0;
+
+          const [b, d] = keypoints[19];
+          // image(mouth, b - 120, d - 130, 270, 270);
+
+          //console.log(distance);
+          if (distance > 90) {
+            sa = distance - 90;
+            console.log(sa);
+            image_x += sa;
+            image_y += sa;
+            image_xy += sa + sa / 2;
+            image(cat, m - 20, n - (sa + 60), image_x, image_y);
+            image(
+              mouth,
+              b - (sa / 1.5 + 110),
+              d - (sa / 1.5 + 120),
+              image_xy,
+              image_xy
+            );
+          } else if (distance < 90) {
+            sa = 90 - distance;
+            image_x -= sa;
+            image_y -= sa;
+            image_xy -= sa * 2;
+            image(cat, m - 20, n + (sa - 60), image_x, image_y);
+            image(
+              mouth,
+              b + (sa / 1.5 - 110),
+              d + (sa / 1.5 - 120),
+              image_xy,
+              image_xy
+            );
+          } else {
+            image(cat, m - 20, n + 55, image_x, image_y);
+            image(mouth, b - 120, d - 120, image_xy, image_xy);
+          }
+
+          /*魚を食べるとポイントゲット*/
+          const [p, q] = keypoints[78];
+          image(fish, targetX, targetY, 100, 100);
+          textSize(32);
+          fill(100);
+          text("ポイント：" + gamepoint, 10, 40);
+          targetY += 5;
+          if (targetY > 500) {
+            targetY = -100;
+            targetX = random(540);
+          }
+          if (
+            Math.sqrt(
+              (targetX - p) * (targetX - p) + (targetY - q) * (targetY - q)
+            ) < 40
+          ) {
+            gamepoint++;
+            //console.log(gamepoint);
+          }
+          if (gamepoint > 10) {
+            document.getElementById("pic1").style.visibility = "visible";
+          }
+          if (gamepoint > 20) {
+            document.getElementById("pic2").style.visibility = "visible";
+          }
+          if (gamepoint > 30) {
+            document.getElementById("pic3").style.visibility = "visible";
+          }
+          if (gamepoint > 40) {
+            document.getElementById("pic4").style.visibility = "visible";
+          }
+          if (gamepoint > 50) {
+            document.getElementById("pic5").style.visibility = "visible";
+          }
+          if (gamepoint > 60) {
+            document.getElementById("pic6").style.visibility = "visible";
+          }
+          if (gamepoint > 70) {
+            document.getElementById("pic7").style.visibility = "visible";
+          }
+          if (gamepoint > 80) {
+            document.getElementById("pic8").style.visibility = "visible";
+          }
+          if (gamepoint > 90) {
+            document.getElementById("pic9").style.visibility = "visible";
+          }
+          if (gamepoint > 100) {
+            document.getElementById("pic10").style.visibility = "visible";
+            document.getElementById("owari").innerHTML = "ALL CLEAR!!!";
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

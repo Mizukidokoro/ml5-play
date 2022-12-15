@@ -1,0 +1,49 @@
+body {
+  background-color: #faeee7;
+  color: #232946;
+  text-align: center;
+  font-family: "DotGothic16", sans-serif;
+  font-size: 32px;
+  border: dashed 4px #232946;
+}
+
+h1 {
+  font-size: 58px;
+}
+
+button {
+  background-color: #eebbc3;
+  width: 100px;
+  height: 30px;
+  margin: 5px;
+  border: dashed 2px #232946;
+  font-family: "DotGothic16", sans-serif;
+}
+
+a {
+  color: #33272a;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+a:hover {
+  color: #ff8ba7;
+}
+
+.content {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.pc,
+.my {
+  border: dashed 4px #ffc6c7;
+  padding: 3px;
+  width: 200px;
+  background-color: #ff8ba7;
+}
+
+#kekka {
+  margin: 0 300px;
+  font-size: 28px;
+}
